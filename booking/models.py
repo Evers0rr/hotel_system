@@ -45,7 +45,7 @@ class Booking(models.Model):
         unique_together = ('room', 'start_time', 'end_time')
 
     def __str__(self):
-        return f"{self.room.name} | {self.start_time.strftime('%Y-%m-%d %H:%M')} — Забронював:{self.user.username}"
+        return f"{self.room.name} | {self.start_time.strftime('%Y-%m-%d %H:%M')} — Забронював кімнату:{self.user.username}"
     # %Y - рік
     # %m - місяць
     # %d - день

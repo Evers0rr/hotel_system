@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking room</title>
+</head>
+<body>
+        <h1>Список кімнат</h1>
+    <ul>
+        {% for room in rooms %}
+            <li>
+                {{ room.name }} — 
+                <a href="{% url 'book_room' room.id %}">Забронювати  кімнату</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
