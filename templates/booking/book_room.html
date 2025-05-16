@@ -1,17 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking room</title>
-</head>
-<body>
-    <h1>Бронювання кімнати: {{ room.name }}</h1>
-    <p>Ціна за годину: {{ room.price_for_hour }} $</p>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
+{% extends "based/base.html" %}
+{% block title %}Бронювання кімнати{% endblock %}
+
+{% block content %}
+    <h1>Бронювання кімнати: {{ room.name }}</h1>    
+    <div class="card mb-2 p-2">
+        <p>Ціна за годину: {{ room.price_for_hour }} $</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
         <button type="submit">Забронювати</button>
-    </form>
-</body>
-</html>
+        </form>
+    </div>
+    
+{% endblock %}

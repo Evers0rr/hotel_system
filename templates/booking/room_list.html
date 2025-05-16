@@ -1,19 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room list</title>
-</head>
-<body>
-    <h1>Список кімнат</h1>
-    <ul>
-        {% for room in rooms %}
-            <li>
-                {{ room.name }} — 
-                <a href="{% url 'book_room' room.id %}">Забронювати  кімнату</a>
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% extends "based/base.html" %}
+
+{% block title %}Список кімнат{% endblock %}
+
+{% block content %}
+    <h1>Кімнати</h1>
+    <a href="{% url 'login' %}">Увійти</a> | <a href="{% url 'register' %}">Реєстрація</a> | <a href="{% url 'profile' %}">Профіль</a>
+    {% for room in rooms %}
+        <div class="card mb-2 p-2">
+            <h4>{{ room.name }}</h4>
+            <p>{{ room.description }}</p>
+            <a href="{% url 'book_room' room.id %}" class="btn btn-primary">Забронювати</a>
+
+        </div>
+    {% endfor %}
+{% endblock %}
