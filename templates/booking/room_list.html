@@ -3,8 +3,16 @@
 {% block title %}Список кімнат{% endblock %}
 
 {% block content %}
-    <h1>Кімнати</h1>
-    <a href="{% url 'login' %}">Увійти</a> | <a href="{% url 'register' %}">Реєстрація</a> | <a href="{% url 'profile' %}">Профіль</a>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1 class="mb-0">Кімнати</h1>
+          <div>
+            <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Увійти</a>
+            <a href="{% url 'register' %}" class="btn btn-outline-success me-2">Реєстрація</a>
+            <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Профіль</a>
+          </div>
+        </div>
+    </div>
     {% for room in rooms %}
         <div class="card mb-2 p-2">
             <h4>{{ room.name }}</h4>

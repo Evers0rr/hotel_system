@@ -1,12 +1,26 @@
 {% extends "based/base.html" %}
 
-{% block title %}Вхід{% endblock %}
+{% block title %}Профіль{% endblock %}
+
 {% block content %}
-    <h1>Профіль {{ user.username }}</h1>
-    <p>Email: {{ user.email }}</p>
-    <p>Адреса: {{ user.profile.address }}</p>
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">Вийти</button>
-      </form>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow p-4" style="width: 500px;">
+        <h2 class="text-center mb-4">Профіль користувача</h2>
+
+        <ul class="list-group list-group-flush mb-3">
+            <li class="list-group-item"><strong>Ім’я користувача:</strong> {{ user.username }}</li>
+            <li class="list-group-item"><strong>Email:</strong> {{ user.email }}</li>
+            <li class="list-group-item"><strong>Адреса:</strong> {{ user.profile.address }}</li>
+        </ul>
+
+        <form method="post" action="{% url 'logout' %}" class="d-grid mb-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Вийти</button>
+        </form>
+
+        <div class="d-grid">
+            <a href="{% url 'room_list' %}" class="btn btn-secondary">← На головну</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

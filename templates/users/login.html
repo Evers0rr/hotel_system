@@ -3,10 +3,31 @@
 {% block title %}Вхід{% endblock %}
 
 {% block content %}
-<h2>Увійти</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary" type="submit">Увійти</button>
-</form>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow p-4" style="width: 400px;">
+        <h2 class="text-center mb-4">Увійти</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3 text-center">
+                <label for="id_username" class="form-label fw-bold">Username:</label>
+                <input type="text" name="username" class="form-control text-center" id="id_username" required>
+            </div>
+
+            <div class="mb-4 text-center">
+                <label for="id_password" class="form-label fw-bold">Password:</label>
+                <input type="password" name="password" class="form-control text-center" id="id_password" required>
+            </div>
+
+            <div class="d-grid mb-2">
+                <button type="submit" class="btn btn-primary">Увійти</button>
+            </div>
+        </form>
+
+        <div class="text-center">
+            <a href="{% url 'room_list' %}" class="btn btn-secondary btn-sm">← Повернутися на головну</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

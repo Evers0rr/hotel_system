@@ -1,11 +1,25 @@
 {% extends 'based/base.html' %}
 
+{% block title %}Реєстрація{% endblock %}
+
 {% block content %}
-    <h2>Реєстрація</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type = 'submit'>Зареєструватися</button>
-    </form>
-    <p>Вже маєте акаунт?<a href="{% url 'login' %}"></a></p>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow p-4" style="width: 450px;">
+        <h2 class="text-center mb-4">Реєстрація</h2>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-primary">Зареєструватися</button>
+            </div>
+        </form>
+
+        <p class="text-center">Вже маєте акаунт? <a href="{% url 'login' %}">Увійти</a></p>
+        <div class="text-center mt-2">
+            <a href="{% url 'room_list' %}" class="btn btn-secondary btn-sm">← Повернутися на головну</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
