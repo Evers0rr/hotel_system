@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Room, Booking, Profile
-from .forms import BookingForm
+from .forms import BookingForm, CustomRegisterForm
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
@@ -17,13 +17,13 @@ def is_available(room, start, end):
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             return redirect('room_list')
     else:
-        form = UserCreationForm()
+        form = CustomRegisterForm()
     return render(request, 'users/register.html', {'form': form})
 
 @login_required
@@ -37,6 +37,7 @@ def room_list(request):
 @login_required
 def book_room(request, room_id):
     room = get_object_or_404(Room, id=room_id)
+    bookings = room.bookings.order_by('-start_time')
 
     if request.method == 'POST':
         form = BookingForm(request.POST)
@@ -44,6 +45,7 @@ def book_room(request, room_id):
             booking = form.save(commit=False)
             booking.user = request.user
             booking.room = room
+            booking.save()
 
             if is_available(room, booking.start_time, booking.end_time):
                 booking.save()
@@ -54,7 +56,7 @@ def book_room(request, room_id):
     else:
         form = BookingForm()
     
-    return render(request, 'booking/book_room.html', {'form': form, 'room': room})
+    return render(request, 'booking/book_room.html', {'form': form, 'room': room, 'bookings': bookings})
 
 
 

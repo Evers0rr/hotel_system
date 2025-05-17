@@ -1,7 +1,11 @@
 from django import forms
 from .models import Booking
+from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
 
 class BookingForm(forms.ModelForm):
     class Meta:
@@ -24,3 +28,18 @@ class BookingForm(forms.ModelForm):
 
             if start < timezone.now():
                 raise ValidationError("Неможливо забронювати в минулому.")
+            
+class CustomRegisterForm(UserCreationForm):
+    email = forms.EmailField(label='Email', required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+
+    def clean_password1(self):
+        password = self.cleaned_data.get('password1')
+        if len(password) < 8:
+            raise ValidationError(_("Пароль повинен містити щонайменше 8 символів."))
+        if password.isdigit():
+            raise ValidationError(_("Пароль не може складатися лише з цифр."))
+        return password

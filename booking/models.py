@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 
 class Category(models.Model):
@@ -34,7 +35,6 @@ class Room(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='profile')
-    phone = models.CharField(max_length=20, blank=True)
     address = models.EmailField(blank=False)
 
     class Meta:
@@ -66,6 +66,29 @@ class Booking(models.Model):
     # %d - день
     # %H - година
     # %M - хвилина
+    
+
+class Post(models.Model):
+    title = models.CharField('Заголовок', max_length=120)
+    content = models.TextField('Опис')
+    created_at = models.DateTimeField('Дата публікації', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Пост"
+        verbose_name_plural = 'Пости'
+        ordering = ['-created_at']
+    def __str__(self):
+        return self.title
+    
+class RoomRating(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+
+    class Meta:
+        unique_together = ('room','user')
+
+
     
 
 
