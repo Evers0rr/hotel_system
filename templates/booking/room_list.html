@@ -4,21 +4,24 @@
 
 {% block content %}
     <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center">
-          <h1 class="mb-0">Кімнати</h1>
-          <div>
-            <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Увійти</a>
-            <a href="{% url 'register' %}" class="btn btn-outline-success me-2">Реєстрація</a>
-            <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Профіль</a>
-          </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="mb-0">Кімнати</h1>
+            <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">На головну сторінку</a>
         </div>
-    </div>
-    {% for room in rooms %}
+
+        {% for room in rooms %}
         <div class="card mb-2 p-2">
             <h4>{{ room.name }}</h4>
             <p>{{ room.description }}</p>
-            <a href="{% url 'book_room' room.id %}" class="btn btn-primary">Забронювати</a>
 
+        {% if room.avg_rating %}
+            <p><strong>Середній рейтинг цієї кімнати:</strong> {{ room.avg_rating|floatformat:1 }}</p>
+        {% else %}
+            <p><strong>Середній рейтинг цієї кімнати:</strong> Поки немає оцінок</p>
+        {% endif %}
+
+        <a href="{% url 'book_room' room.id %}" class="btn btn-primary">Забронювати</a>
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 {% endblock %}

@@ -18,7 +18,7 @@ class Category(models.Model):
 
 class Room(models.Model):
     name =  models.CharField(max_length=50) 
-    capacity = models.IntegerField()
+    capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     description = models.TextField(blank=False)
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True,blank=False,related_name='rooms')
     features = models.CharField(max_length=255, blank=False)

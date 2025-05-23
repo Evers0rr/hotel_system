@@ -1,5 +1,5 @@
 from django import forms
-from .models import Booking
+from .models import Booking, RoomRating
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -15,7 +15,6 @@ class BookingForm(forms.ModelForm):
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
-
 
     def clean(self):
         cleaned_data = super().clean()
@@ -43,3 +42,11 @@ class CustomRegisterForm(UserCreationForm):
         if password.isdigit():
             raise ValidationError(_("Пароль не може складатися лише з цифр."))
         return password
+    
+class RatingForm(forms.ModelForm):
+    class Meta:
+        model = RoomRating
+        fields = ['rating']
+        widgets = {
+            'rating': forms.NumberInput(attrs={'min': 1, 'max': 5, 'class': 'form-control'}),
+        }

@@ -10,7 +10,26 @@
         <ul class="list-group list-group-flush mb-3">
             <li class="list-group-item"><strong>Ім’я користувача:</strong> {{ user.username }}</li>
             <li class="list-group-item"><strong>Email:</strong> {{ user.email }}</li>
-            <li class="list-group-item"><strong>Адреса:</strong> {{ user.profile.address }}</li>
+        </ul>
+
+        <h3>Ваші бронювання</h3>
+        <ul>
+            {% for booking in bookings %}
+                <li>{{ booking.room.name }} – з {{ booking.start_time }} до {{ booking.end_time }}</li>
+            {% empty %}
+                <li>У вас поки немає бронювань.</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Ваші оцінки кімнат</h3>
+        <ul>
+            {% for rating in ratings %}
+                <li>
+                    {{ rating.room.name }} – {{ rating.rating }} ★
+                </li>
+            {% empty %}
+                <li>Ви ще не оцінили жодну кімнату.</li>
+            {% endfor %}
         </ul>
 
         <form method="post" action="{% url 'logout' %}" class="d-grid mb-2">
@@ -19,7 +38,7 @@
         </form>
 
         <div class="d-grid">
-            <a href="{% url 'room_list' %}" class="btn btn-secondary">← На головну</a>
+            <a href="{% url 'home' %}" class="btn btn-secondary">← На головну</a>
         </div>
     </div>
 </div>

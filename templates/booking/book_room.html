@@ -6,22 +6,56 @@
     <div class="card shadow-lg p-4" style="max-width: 600px; width: 100%;">
         <h2 class="text-center mb-4">Бронювання кімнати</h2>
         <h4 class="text-center text-muted mb-3">{{ room.name }}</h4>
-        
+
+        <div class="text-center mb-3">
+            <span class="fw-bold">Середній рейтинг:</span>
+            {% if average_rating %}
+                <span class="text-warning fs-5">
+                    {% for i in range %}
+                        {% if i <= average_rating|floatformat:0 %}
+                            ★
+                        {% else %}
+                            ☆
+                        {% endif %}
+                    {% endfor %}
+                </span>
+                <small class="text-muted">({{ average_rating|floatformat:1 }}/5)</small>
+            {% else %}
+                <span class="text-muted">Поки немає оцінок</span>
+            {% endif %}
+        </div>
+
         <p class="text-center mb-4">
             <span class="fw-bold text-success">Ціна за годину:</span>
             <span class="fs-5">{{ room.price_for_hour }} $</span>
+        </p>
+
+        <p class="text-center mb-4">
+            <span class="fw-bold text-dark mb-3">Кількість місць:{{ room.capacity }}</span>
+        </p>
+
+        <p class="text-center mb-4">
+            <span class="fw-bold text-dark mb-3">{{ room.features }}</span>
         </p>
 
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
             <div class="d-grid">
-                <button type="submit" class="btn btn-primary mt-3">Забронювати</button>
+                <button type="submit" name="submit_booking" class="btn btn-primary mt-3">Забронювати</button>
             </div>
         </form>
 
         <hr class="my-4">
+        <form method="post" class="text-center">
+            {% csrf_token %}
+            {{ rating_form.rating.label_tag }}<br>
+            {{ rating_form.rating }}
+            <br>
+            <button type="submit" name="submit_rating" min="1" max="5" class="btn btn-sm btn-outline-success mt-2">Оцінити</button>
+        </form>
 
+        <hr class="my-4">
         <h5 class="text-center">Існуючі бронювання:</h5>
         {% if bookings %}
             <ul class="list-group list-group-flush">
@@ -43,4 +77,3 @@
     </div>
 </div>
 {% endblock %}
-
