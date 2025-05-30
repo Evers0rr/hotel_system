@@ -15,7 +15,6 @@ class Category(models.Model):
         return self.name
 
         
-
 class Room(models.Model):
     name =  models.CharField(max_length=50) 
     capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
@@ -45,7 +44,6 @@ class Profile(models.Model):
         return f'Юзер: {self.user.username}'
     
     
-
 class Booking(models.Model):
     user =  models.ForeignKey(User, on_delete=models.CASCADE,related_name='bookings')
     room = models.ForeignKey('Room', on_delete=models.CASCADE,related_name='bookings')

@@ -136,7 +136,7 @@ LOGIN_URL = '/login/'
 
 LOGIN_REDIRECT_URL = 'profile'
 
-LOGOUT_REDIRECT_URL = ''
+LOGOUT_REDIRECT_URL = 'home'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

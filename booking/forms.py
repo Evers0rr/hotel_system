@@ -42,7 +42,7 @@ class CustomRegisterForm(UserCreationForm):
         if password.isdigit():
             raise ValidationError(_("Пароль не може складатися лише з цифр."))
         return password
-    
+       
 class RatingForm(forms.ModelForm):
     class Meta:
         model = RoomRating

@@ -1,12 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Room, Booking, Profile, Post, RoomRating
 from .forms import BookingForm, CustomRegisterForm, RatingForm
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.db.models import Avg, Q
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.contrib.auth import login
+from django.core.signing import Signer
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.conf import settings
 
 
 def is_available(room, start, end):
@@ -19,6 +23,20 @@ def is_available(room, start, end):
 def home(request):
     post_list = Post.objects.order_by('-created_at')
     return render(request, 'based/home.html',{'news_list': post_list})
+
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f'👋 Вітаємо, {user.username}!')
+            return redirect('profile')  
+        else:
+            messages.error(request, '❌ Невірне імʼя користувача або пароль.')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'users/login.html', {'form': form})
 
 def register(request):
     if request.method == 'POST':
@@ -45,7 +63,6 @@ def room_list(request):
     rooms = Room.objects.annotate(avg_rating=Avg('roomrating__rating'))
     return render(request, 'booking/room_list.html', {'rooms': rooms})
 
-@login_required
 def book_room(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     bookings = Booking.objects.filter(room=room).order_by('-start_time')
@@ -53,9 +70,10 @@ def book_room(request, room_id):
 
     booking_form = BookingForm()
     rating_form = RatingForm()
-
+    if not request.user.is_authenticated:
+        messages.warning(request, '🔒 Для того щоб забронювати кімнату, потрібно увійти або зареєструватися.')
+        return redirect(f"{settings.LOGIN_URL}?next=/booking/{room_id}/")
     if request.method == 'POST':
-        # Користувач натиснув кнопку "Забронювати"
         if 'submit_booking' in request.POST:
             booking_form = BookingForm(request.POST)
             if booking_form.is_valid():
@@ -79,11 +97,9 @@ def book_room(request, room_id):
                 messages.success(request, '✅ Бронювання успішно створено.')
                 return redirect('book_room', room_id=room.id)
 
-        # Користувач натиснув кнопку "Оцінити"
         elif 'submit_rating' in request.POST:
             rating_form = RatingForm(request.POST)
             if rating_form.is_valid():
-                # Якщо користувач вже залишав оцінку, оновлюємо її
                 existing_rating = RoomRating.objects.filter(user=request.user, room=room).first()
                 if existing_rating:
                     existing_rating.rating = rating_form.cleaned_data['rating']
@@ -106,7 +122,6 @@ def book_room(request, room_id):
         'range': range(1, 6),
     })
 
-@login_required
 def rate_room(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
 
@@ -125,6 +140,19 @@ def rate_room(request, room_id):
         'room': room,
         'form': form,
     })
+
+signer = Signer()
+
+def send_confirmation_email(booking):
+    token = signer.sign(booking.pk)
+    confirm_url = settings.SITE_URL + reverse('confirm_booking', args=[token])
+
+    send_mail(
+        subject='Підтвердіть ваше бронювання',
+        message=f'Будь ласка, підтвердіть ваше бронювання за посиланням: {confirm_url}',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[booking.user.email],
+    )
 
 
 

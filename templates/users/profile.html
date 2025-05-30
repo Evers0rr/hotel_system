@@ -3,6 +3,34 @@
 {% block title %}Профіль{% endblock %}
 
 {% block content %}
+<nav class="navbar navbar-expand-lg bg-primary border rounded shadow-sm mt-3">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-dark" href="{% url 'home' %}">🏨 Головна</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="btn btn-light border border-dark me-2" href="{% url 'room_list' %}">Кімнати</a>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="btn btn-light border border-dark me-2" href="{% url 'profile' %}">Профіль</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="btn btn-light border border-dark me-2" href="{% url 'register' %}">Реєстрація</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-light border border-dark" href="{% url 'login' %}">Логін</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="card shadow p-4" style="width: 500px;">
         <h2 class="text-center mb-4">Профіль користувача</h2>
@@ -36,10 +64,6 @@
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Вийти</button>
         </form>
-
-        <div class="d-grid">
-            <a href="{% url 'home' %}" class="btn btn-secondary">← На головну</a>
-        </div>
     </div>
 </div>
 {% endblock %}
