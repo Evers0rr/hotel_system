@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+from datetime import timedelta
+import uuid
 # Create your models here.
 
 class Category(models.Model):
@@ -86,6 +89,19 @@ class RoomRating(models.Model):
     class Meta:
         unique_together = ('room','user')
 
+
+class BookingConfirmation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed = models.BooleanField(default=False)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=2)
+    
 
     
 

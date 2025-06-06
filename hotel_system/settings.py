@@ -14,6 +14,9 @@ from pathlib import Path
 from django.contrib.messages import constants as messages
 import os
 
+import dotenv
+dotenv.load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -44,6 +47,13 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",    
 ]
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.ukr.net'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 MESSAGE_TAGS = {
     messages.DEBUG: 'debug',

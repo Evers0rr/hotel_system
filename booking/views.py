@@ -1,16 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Room, Booking, Profile, Post, RoomRating
-from .forms import BookingForm, CustomRegisterForm, RatingForm
+from .models import Room, Booking, Profile, Post, RoomRating, BookingConfirmation
+from .forms import BookingForm, CustomRegisterForm, RatingForm, ConfirmCodeForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.db.models import Avg, Q
 from django.contrib import messages
-from django.core.signing import Signer
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.conf import settings
+from django.utils import timezone
+import uuid
 
 
 def is_available(room, start, end):
@@ -63,6 +64,84 @@ def room_list(request):
     rooms = Room.objects.annotate(avg_rating=Avg('roomrating__rating'))
     return render(request, 'booking/room_list.html', {'rooms': rooms})
 
+def initiate_booking(request, room_id):
+    room = get_object_or_404(Room, pk=room_id)
+
+    if not request.user.is_authenticated:
+        messages.warning(request, '🔒 Щоб бронювати кімнату, спочатку увійдіть.')
+        return redirect(f"{settings.LOGIN_URL}?next=/booking/{room_id}/")
+
+    if request.method == "POST":
+        form = BookingForm(request.POST)
+
+        if form.is_valid():
+            start_time = form.cleaned_data['start_time']
+            end_time = form.cleaned_data['end_time']
+
+            if Booking.objects.filter(
+                room=room,
+                start_time__lt=end_time,
+                end_time__gt=start_time
+            ).exists():
+                messages.error(request, '❌ Ця кімната вже заброньована у вибраний період.')
+                return redirect("book_room", room_id=room.id)
+
+            confirmation = BookingConfirmation.objects.create(
+                user=request.user,
+                room=room,
+                start_time=start_time,
+                end_time=end_time,
+            )
+
+            send_mail(
+                subject="Підтвердження бронювання кімнати",
+                message=(
+                    f"Привіт! Це автоматичний лист з сайту по бронюванню кімнат у Готелі.\n"
+                    f"Ви намагалися забронювати кімнату: {room.name}\n"
+                    f"Введіть цей код на нашому сайті: {confirmation.code}\n"
+                    f"Якщо ви нічого не бронювали — просто проігноруйте цей лист."
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[request.user.email],
+            )
+
+            return redirect('confirm_booking')
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
+
+            return redirect("book_room", room_id=room.id)
+
+    return redirect("book_room", room_id=room.id)
+
+@login_required
+def confirm_booking(request):
+    if request.method == 'POST':
+        form = ConfirmCodeForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            try:
+                confirmation = BookingConfirmation.objects.get(code=code)
+            except BookingConfirmation.DoesNotExist:
+                messages.error(request, '❌ Невірний код підтвердження.')
+            else:
+                if confirmation.user != request.user:
+                    messages.error(request, '❌ Ви не можете підтвердити це бронювання.')
+                else:
+                    Booking.objects.create(
+                        user=confirmation.user,
+                        room=confirmation.room,
+                        start_time=confirmation.start_time,
+                        end_time=confirmation.end_time,
+                    )
+                    messages.success(request, '✅ Бронювання підтверджено.')
+                    confirmation.delete()
+                    return redirect('profile')
+    else:
+        form = ConfirmCodeForm()
+
+    return render(request, 'booking/confirm_booking.html', {'form': form})
+
 def book_room(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     bookings = Booking.objects.filter(room=room).order_by('-start_time')
@@ -70,34 +149,13 @@ def book_room(request, room_id):
 
     booking_form = BookingForm()
     rating_form = RatingForm()
+
     if not request.user.is_authenticated:
         messages.warning(request, '🔒 Для того щоб забронювати кімнату, потрібно увійти або зареєструватися.')
         return redirect(f"{settings.LOGIN_URL}?next=/booking/{room_id}/")
+
     if request.method == 'POST':
-        if 'submit_booking' in request.POST:
-            booking_form = BookingForm(request.POST)
-            if booking_form.is_valid():
-                start_time = booking_form.cleaned_data['start_time']
-                end_time = booking_form.cleaned_data['end_time']
-
-                conflicting_bookings = Booking.objects.filter(
-                    room=room,
-                    start_time__lt=end_time,
-                    end_time__gt=start_time
-                )
-
-                if conflicting_bookings.exists():
-                    messages.error(request, '❌ Ця кімната вже заброньована у вказаний період.')
-                    return redirect('book_room', room_id=room.id)
-
-                booking = booking_form.save(commit=False)
-                booking.room = room
-                booking.user = request.user
-                booking.save()
-                messages.success(request, '✅ Бронювання успішно створено.')
-                return redirect('book_room', room_id=room.id)
-
-        elif 'submit_rating' in request.POST:
+        if 'submit_rating' in request.POST:
             rating_form = RatingForm(request.POST)
             if rating_form.is_valid():
                 existing_rating = RoomRating.objects.filter(user=request.user, room=room).first()
@@ -141,18 +199,8 @@ def rate_room(request, room_id):
         'form': form,
     })
 
-signer = Signer()
 
-def send_confirmation_email(booking):
-    token = signer.sign(booking.pk)
-    confirm_url = settings.SITE_URL + reverse('confirm_booking', args=[token])
 
-    send_mail(
-        subject='Підтвердіть ваше бронювання',
-        message=f'Будь ласка, підтвердіть ваше бронювання за посиланням: {confirm_url}',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[booking.user.email],
-    )
 
 
 

@@ -50,3 +50,6 @@ class RatingForm(forms.ModelForm):
         widgets = {
             'rating': forms.NumberInput(attrs={'min': 1, 'max': 5, 'class': 'form-control'}),
         }
+
+class ConfirmCodeForm(forms.Form):
+    code = forms.CharField(label="Введіть код підтвердження", max_length=100)
