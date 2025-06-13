@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Room, Booking, Profile, Post, RoomRating, BookingConfirmation
+from .models import Room, Booking,Post, RoomRating, BookingConfirmation
 from .forms import BookingForm, CustomRegisterForm, RatingForm, ConfirmCodeForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
