@@ -3,4 +3,4 @@ __pycache__/
 .env
 account.txt
 db.sqlite3
-
+db_backup.sqlite3
