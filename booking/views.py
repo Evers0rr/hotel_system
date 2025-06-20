@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Room, Booking,Post, RoomRating, BookingConfirmation
+from .models import Room, Booking,Post, RoomRating, BookingConfirmation, Category
 from .forms import BookingForm, CustomRegisterForm, RatingForm, ConfirmCodeForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -61,8 +61,34 @@ def profile(request):
     })
 
 def room_list(request):
-    rooms = Room.objects.annotate(avg_rating=Avg('roomrating__rating'))
-    return render(request, 'booking/room_list.html', {'rooms': rooms})
+    sort_by = request.GET.get('sort', 'name')
+    min_rating = request.GET.get('min_rating')
+    max_price = request.GET.get('max_price')
+
+    rooms = Room.objects.all().annotate(avg_rating=Avg('roomrating__rating'))
+    
+    if min_rating:
+        rooms = rooms.filter(avg_rating__gte=float(min_rating))
+    if max_price:
+        rooms = rooms.filter(price_for_hour__lte=float(max_price))
+
+    if sort_by == 'price':
+        rooms = rooms.order_by('price_for_hour')
+    elif sort_by == 'rating':
+        rooms = rooms.order_by('-avg_rating')
+    elif sort_by == 'category':
+        rooms = rooms.order_by('category__name')
+    else:
+        rooms = rooms.order_by('name')
+
+    categories = Category.objects.all()
+    return render(request, 'booking/room_list.html', {
+        'rooms': rooms,
+        'sort_by': sort_by,
+        'min_rating': min_rating,
+        'max_price': max_price,
+        'categories': categories,
+    })
 
 def initiate_booking(request, room_id):
     room = get_object_or_404(Room, pk=room_id)

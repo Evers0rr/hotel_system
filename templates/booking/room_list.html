@@ -28,24 +28,119 @@
         </div>
     </div>
 </nav>
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="mb-0">Кімнати</h1>
-        </div>
 
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Кімнати</h1>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="sortSelect" class="form-label">Сортувати за:</label>
+            <select id="sortSelect" class="form-select">
+                <option value="name">Назва</option>
+                <option value="price">Ціна</option>
+                <option value="rating">Рейтинг</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="ratingFilter" class="form-label">Мін. рейтинг:</label>
+            <select id="ratingFilter" class="form-select">
+                <option value="0">Усі</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="categoryFilter" class="form-label">Категорія:</label>
+            <select id="categoryFilter" class="form-select">
+                <option value="all">Усі</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button id="resetFilters" class="btn btn-outline-secondary w-100">Скинути фільтри</button>
+        </div>
+    </div>
+
+    <div id="roomList">
         {% for room in rooms %}
-        <div class="card mb-2 p-2">
+        <div class="card mb-2 p-2 room-card"
+             data-name="{{ room.name|lower }}"
+             data-price="{{ room.price_for_hour }}"
+             data-rating="{{ room.avg_rating|default:0 }}"
+             data-category="{{ room.category.name|default:'unknown'|lower }}">
             <h4>{{ room.name }}</h4>
             <p>{{ room.description }}</p>
-
-        {% if room.avg_rating %}
-            <p><strong>Середній рейтинг цієї кімнати:</strong> {{ room.avg_rating|floatformat:1 }}</p>
-        {% else %}
-            <p><strong>Середній рейтинг цієї кімнати:</strong> Поки немає оцінок</p>
-        {% endif %}
-
-        <a href="{% url 'book_room' room.id %}" class="btn btn-primary">Забронювати</a>
+            <p><strong>Ціна за годину:</strong> {{ room.price_for_hour }} $</p>
+            {% if room.avg_rating %}
+                <p><strong>Середній рейтинг:</strong> {{ room.avg_rating|floatformat:1 }}</p>
+            {% else %}
+                <p><strong>Середній рейтинг:</strong> Поки немає оцінок</p>
+            {% endif %}
+            <a href="{% url 'book_room' room.id %}" class="btn btn-primary">Забронювати</a>
         </div>
         {% endfor %}
     </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const sortSelect = document.getElementById("sortSelect");
+        const ratingFilter = document.getElementById("ratingFilter");
+        const categoryFilter = document.getElementById("categoryFilter");
+        const resetBtn = document.getElementById("resetFilters");
+        const roomCards = document.querySelectorAll(".room-card");
+    
+        function filterAndSortRooms() {
+            const sortValue = sortSelect.value;
+            const minRating = parseFloat(ratingFilter.value);
+            const category = categoryFilter.value.toLowerCase();
+    
+            let sortedRooms = Array.from(roomCards);
+    
+            sortedRooms.forEach(card => {
+                const rating = parseFloat(card.dataset.rating);
+                const cat = card.dataset.category;
+    
+                const showByRating = rating >= minRating;
+                const showByCategory = (category === "all" || cat === category);
+    
+                card.style.display = (showByRating && showByCategory) ? "block" : "none";
+            });
+    
+            sortedRooms.sort((a, b) => {
+                if (sortValue === "name") {
+                    return a.dataset.name.localeCompare(b.dataset.name);
+                } else if (sortValue === "price") {
+                    return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+                } else if (sortValue === "rating") {
+                    return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+                }
+                return 0;
+            });
+    
+            const container = document.getElementById("roomList");
+            sortedRooms.forEach(room => container.appendChild(room));
+        }
+    
+        sortSelect.addEventListener("change", filterAndSortRooms);
+        ratingFilter.addEventListener("change", filterAndSortRooms);
+        categoryFilter.addEventListener("change", filterAndSortRooms);
+        resetBtn.addEventListener("click", () => {
+            sortSelect.value = "name";
+            ratingFilter.value = "0";
+            categoryFilter.value = "all";
+            filterAndSortRooms();
+        });
+    
+        filterAndSortRooms();
+    });
+</script>
+
 {% endblock %}
